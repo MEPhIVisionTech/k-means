@@ -588,6 +588,7 @@ colours_dict = {
 "WHEAT_3" : (205, 186, 150),
 "WHEAT_4" : (139, 126, 102),
 "QUARTZ" : (217, 217, 243),
+"None" : (255,255,255)
 }
 
 
@@ -613,15 +614,17 @@ def get_key(d, value):
     for k, v in d.items():
         if str(v) == value:
             return k
-        
+
+      
 def List2d(m):
   for lst in m:
       print(*lst)
+
         
 # Чтение картинки
-image = cv2.imread('map.png')
+image = cv2.imread('bld.jpg')
 image = np.vstack(image)
-colours_count = 50
+colours_count = 5
 # Подсчёт основных colours_count цветов при помощи метода машинного обучения "k средних"
 k_means = KMeans(n_clusters=colours_count)
 k_means.fit(image)  # np.vstack нужно для преобразования изображения в необходимый формат
@@ -631,7 +634,7 @@ groups = k_means.labels_
 # Для каждого цвета ищем ближайший к нему
 answer = list(map(nearest_color, colours))
 
-img = pygame.image.load('map.png')
+img = pygame.image.load('bld.jpg')
 w = img.get_width()
 h = img.get_height()
 print(h,w)
@@ -639,21 +642,41 @@ print(h,w)
 output_image = np.zeros((h, w, 3))
 m = [['0' for j in range(w)] for i in range(h)] # создадим пустую матрицу
 # заполним каждый ее элемент цветом соответвующего пикселя
+CommonColor = {}
+
 try:
   for x in range(h):
     for y in range(w):
         output_image[x][y] =  answer[groups[(x - 1) * w + y]][0]
-        c = get_key(colours_dict,str((output_image[x][y])).replace('[', '(').replace(']', ')').replace('.', ',',2).replace('.', '',2))
-        m[x][y] = c         
+        k = get_key(colours_dict,str((output_image[x][y])).replace('[', '(').replace(']', ')').replace('.', ',',2).replace('.', '',2))
+        val = colours_dict[str(k)]
+        if val != None:
+          m[x][y] = val
+        else:
+          m[x][y] = 'None'
+        if val in CommonColor and val != None:
+            CommonColor[val] += 1
+
+        else:
+            CommonColor[val] = 1
 except IndexError:
   pass
 
 
 
 
-cv2.imwrite("newmap.png", output_image) #сохраним "удобное" изображение    
+cv2.imwrite("new.png", output_image) #сохраним "удобное" изображение
+#CommonColor = {k: v for k, v in sorted(CommonColor.items(), key=lambda item: item[1])}
+print(CommonColor)
+print(max(CommonColor, key=CommonColor.get))
+from matplotlib import pyplot as plt
+plt.imshow(np.array(m), interpolation='none')
+plt.show()
+
+'''
 List2d(m)
+
 with open('map.txt', 'w') as f:
     for row in m:
         f.write(' '.join([str(a) for a in row]) + '\n') #запишем все в текстовый файл
-
+'''
