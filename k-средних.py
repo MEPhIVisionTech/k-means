@@ -3,6 +3,9 @@ import numpy as np
 from sklearn.cluster import KMeans
 import pygame
 import cv2
+from matplotlib import pyplot as plt
+import warnings
+warnings.filterwarnings("ignore") # кхе-кхе 
 # словарь RGB цветов
 colours_dict = {
 "RED" : (255, 0, 0),
@@ -619,12 +622,33 @@ def get_key(d, value):
 def List2d(m):
   for lst in m:
       print(*lst)
-
-        
-# Чтение картинки
+# Обводка искомого изображения
+def Border(m,FindColour,NewColour):
+    for i in range(1,x-1):
+        for j in range(1,y-1):
+            if m[i][j] == FindColour:
+                if m[i][j+1] != FindColour:
+                    m[i][j+1] = NewColour
+                if m[i][j-1] != FindColour:
+                    m[i][j-1] = NewColour
+                if m[i+1][j] != FindColour:
+                    m[i+1][j] = NewColour
+                if m[i-1][j] != FindColour:
+                    m[i-1][j] = NewColour
+                if m[i+1][j+1] != FindColour:
+                    m[i+1][j+1] = NewColour
+                if m[i+1][j-1] != FindColour:
+                    m[i+1][j-1] = NewColour
+                if m[i-1][j+1] != FindColour:
+                    m[i-1][j+1] = NewColour
+                if m[i-1][j-1] != FindColour:
+                    m[i-1][j-1] = NewColour
+    return m
+           
+# Чтение обрабатывемой картинки
 image = cv2.imread('bld.jpg')
 image = np.vstack(image)
-colours_count = 5
+colours_count = 6
 # Подсчёт основных colours_count цветов при помощи метода машинного обучения "k средних"
 k_means = KMeans(n_clusters=colours_count)
 k_means.fit(image)  # np.vstack нужно для преобразования изображения в необходимый формат
@@ -642,7 +666,7 @@ print(h,w)
 output_image = np.zeros((h, w, 3))
 m = [['0' for j in range(w)] for i in range(h)] # создадим пустую матрицу
 # заполним каждый ее элемент цветом соответвующего пикселя
-CommonColor = {}
+CommonColor = {}# создадим словарь для подсчёта встерчаемости цветов
 
 try:
   for x in range(h):
@@ -665,11 +689,13 @@ except IndexError:
 
 
 
+'''
 cv2.imwrite("new.png", output_image) #сохраним "удобное" изображение
-#CommonColor = {k: v for k, v in sorted(CommonColor.items(), key=lambda item: item[1])}
+'''
+
 print(CommonColor)
-print(max(CommonColor, key=CommonColor.get))
-from matplotlib import pyplot as plt
+FindColour = (max(CommonColor, key=CommonColor.get))
+m = Border(m,FindColour,(255, 0, 0))
 plt.imshow(np.array(m), interpolation='none')
 plt.show()
 
